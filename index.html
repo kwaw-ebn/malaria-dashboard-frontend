@@ -1,88 +1,78 @@
-// Backend Render URL
-const BASE_URL = "https://backend-3x5i.onrender.com/";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malaria Early Warning System</title>
 
-// Predict function
-async function predict() {
-    const rainfall = document.getElementById("rainfall").value;
-    const temperature = document.getElementById("temperature").value;
-    const humidity = document.getElementById("humidity").value;
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
 
-    const data = {
-        rainfall_lag1: Number(rainfall),
-        rainfall_lag2: Number(rainfall),
-        rainfall_lag3: Number(rainfall),
-        temp_lag1: Number(temperature),
-        humidity_lag1: Number(humidity),
-        rainfall_avg_3: Number(rainfall),
-        temp_avg_3: Number(temperature),
-        month_num: new Date().getMonth() + 1,
-        quarter: Math.floor((new Date().getMonth() + 3)/3)
-    };
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    try {
-        const response = await fetch(`${BASE_URL}predict`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
 
-        const result = await response.json();
+<body class="bg-gray-50 font-sans">
 
-        document.getElementById("prediction").innerText = result.prediction;
-        document.getElementById("risk").innerText = result.risk;
+  <!-- SIDEBAR -->
+  <aside class="bg-blue-700 text-white p-4 md:w-64 w-full md:h-screen fixed md:static">
+    <h2 class="text-2xl font-bold">🌍 Malaria AI</h2>
+    <p class="text-sm md:text-base mt-2">Early Warning System</p>
+  </aside>
 
-        updateChart(result.prediction);
-        updateMap(result.risk);
+  <!-- MAIN CONTENT -->
+  <main class="md:ml-64 p-4">
 
-    } catch (err) {
-        console.error(err);
-        alert("Error fetching prediction from backend");
-    }
-}
+    <!-- HEADER -->
+    <header class="mb-4">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Malaria Risk Dashboard</h1>
+      <p class="text-gray-600 mt-1 md:text-lg">AI-powered outbreak prediction using weather data</p>
+    </header>
 
-// Sample chart function
-let chart;
-function updateChart(prediction) {
-    const ctx = document.getElementById('chart').getContext('2d');
-    const labels = Array.from({length:7}, (_, i) => `Day ${i+1}`);
-    const data = labels.map(() => Math.floor(Math.random() * 600));
+    <!-- GRID -->
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-    if(chart) chart.destroy();
+      <!-- INPUT CARD -->
+      <div class="bg-white shadow rounded p-4">
+        <h3 class="text-xl font-semibold mb-2">📊 Weather Input</h3>
 
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Predicted Cases',
-                data: data,
-                borderColor: 'rgb(59,130,246)',
-                backgroundColor: 'rgba(59,130,246,0.2)',
-                tension: 0.3
-            }]
-        },
-        options: { responsive: true }
-    });
-}
+        <label class="block mt-2">Rainfall (mm)</label>
+        <input type="number" id="rainfall" placeholder="120" class="border p-2 w-full rounded">
 
-// Sample map function
-function updateMap(risk) {
-    const mapDiv = document.getElementById('map');
-    mapDiv.innerHTML = "";
-    const trace = {
-        type: "choropleth",
-        locationmode: "geojson-id",
-        locations: ["NG-AB","NG-LA","NG-KD"], // sample states
-        z: [Math.random()*500, Math.random()*500, Math.random()*500],
-        text: ["Abuja","Lagos","Kaduna"],
-        colorscale: [[0,"green"],[0.5,"yellow"],[1,"red"]],
-        colorbar: { title: "Risk Level" }
-    };
-    const layout = {
-        geo: {
-            scope: "africa",
-            projection: { type: "mercator" }
-        }
-    };
-    Plotly.newPlot('map', [trace], layout, {responsive:true});
-}
+        <label class="block mt-2">Temperature (°C)</label>
+        <input type="number" id="temperature" placeholder="28" class="border p-2 w-full rounded">
+
+        <label class="block mt-2">Humidity (%)</label>
+        <input type="number" id="humidity" placeholder="75" class="border p-2 w-full rounded">
+
+        <button onclick="predict()" class="bg-blue-700 text-white py-2 px-4 mt-4 rounded hover:bg-blue-800 w-full">🔍 Predict Risk</button>
+      </div>
+
+      <!-- RESULT CARD -->
+      <div class="bg-white shadow rounded p-4">
+        <h3 class="text-xl font-semibold mb-2">🚨 Prediction Result</h3>
+        <h2 id="prediction" class="text-3xl font-bold">--</h2>
+        <p id="risk" class="mt-2 text-gray-700">--</p>
+      </div>
+
+      <!-- CHART -->
+      <div class="bg-white shadow rounded p-4 md:col-span-2 lg:col-span-1">
+        <h3 class="text-xl font-semibold mb-2">📈 Trend Forecast</h3>
+        <canvas id="chart" class="w-full h-64 md:h-80"></canvas>
+      </div>
+
+      <!-- MAP -->
+      <div class="bg-white shadow rounded p-4 md:col-span-2 lg:col-span-2">
+        <h3 class="text-xl font-semibold mb-2">🗺️ Nigeria Malaria Risk Map</h3>
+        <div id="map" class="w-full h-80 md:h-96"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
